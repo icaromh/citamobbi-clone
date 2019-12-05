@@ -12,7 +12,8 @@ import "./styles.css";
 import {
   API_VEHICLES_SERVICE,
   API_STOPS_SERVICE,
-  API_SEARCH
+  API_SEARCH,
+  API_UPDATE_TIME
 } from "./contants";
 
 import BUS_IMAGE from "./images/bus.png";
@@ -26,6 +27,7 @@ function App() {
   const [polyline, setPolyline] = useState(false);
   const [activeService, setActiveService] = useState({});
   const [activeIntervalId, setIntervalId] = useState(false);
+  const [isLoading, setLoading] = useState(false);
 
   const handleClear = () => {
     setVehicles([]);
@@ -36,6 +38,7 @@ function App() {
   };
 
   const updateBusPosition = service => {
+    setLoading(true)
     fetch(`${API_VEHICLES_SERVICE}/${service.id}`)
       .then(res => res.json())
       .then(data => {
@@ -48,6 +51,10 @@ function App() {
           }
         }));
         setVehicles(buses);
+        setLoading(false)
+      })
+      .catch(() => {
+        setLoading(true)
       });
   };
 
@@ -59,7 +66,7 @@ function App() {
 
     const intervalId = setInterval(() => {
       updateBusPosition(service);
-    }, 30 * 1000);
+    }, API_UPDATE_TIME);
     setIntervalId(intervalId);
 
     fetch(`${API_STOPS_SERVICE}/${service.id}`)
@@ -87,8 +94,10 @@ function App() {
 
   const renderNav = () => {
     const shouldShowTitle = !!activeService.id;
-    if (shouldShowTitle)
-      return <Title onClear={handleClear} data={activeService} />;
+    if (shouldShowTitle){
+      return <Title isLoading={isLoading} onClear={handleClear} data={activeService} />;
+    }
+      
 
     return <SearchBar onChange={debounce(handleSearch, 300)} />;
   };
