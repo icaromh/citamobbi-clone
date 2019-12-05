@@ -1,3 +1,4 @@
+export const GOOGLE_API_KEY = "AIzaSyCLIECCQRXMRe4UcjtlolUJjgnUdV7V8jc";
 export const BUS_IMAGE = "https://img.icons8.com/cotton/0.25x/bus.png";
 export const HOST_API = "https://api.cittamobi.com.br/m3p/js";
 

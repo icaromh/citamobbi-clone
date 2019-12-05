@@ -1,7 +1,6 @@
 import React, { Fragment, useState } from "react";
 import ReactDOM from "react-dom";
 import debounce from "lodash/debounce";
-import { Marker } from "google-maps-react";
 
 import MapContainer from "./components/MapContainer";
 import SearchBar from "./components/SearchBar";

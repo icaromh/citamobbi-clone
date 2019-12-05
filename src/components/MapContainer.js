@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Map, GoogleApiWrapper, Polyline, Marker } from "google-maps-react";
-import { BUS_IMAGE } from "../contants";
+import { BUS_IMAGE, GOOGLE_API_KEY } from "../contants";
 
 const mapStyles = {
   width: "100vw",
@@ -52,6 +52,6 @@ const MapContainer = props => {
 };
 
 export default GoogleApiWrapper({
-  apiKey: "AIzaSyCLIECCQRXMRe4UcjtlolUJjgnUdV7V8jc",
+  apiKey: GOOGLE_API_KEY,
   libraries: ["geometry"]
 })(MapContainer);
