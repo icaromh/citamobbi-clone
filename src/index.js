@@ -4,6 +4,8 @@ import debounce from "lodash/debounce";
 
 import MapContainer from "./components/MapContainer";
 import SearchBar from "./components/SearchBar";
+import SearchResults from "./components/SearchResults";
+import Title from "./components/Title";
 
 import "./styles.css";
 
@@ -13,84 +15,68 @@ import {
   API_SEARCH
 } from "./contants";
 
-const Results = props => {
-  return (
-    <div className="search-result">
-      <ul>
-        {props.data.services.map(bus => {
-          return (
-            <li key={bus.id} onClick={() => props.handleSelectService(bus)}>
-              <b>{bus.routeCode}</b> - {bus.serviceMnemonic}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-};
-
-const Title = props => {
-  return (
-    <div className="title-area">
-      <span>
-        <b>{props.data.routeCode}</b> - {props.data.serviceMnemonic}
-      </span>
-      <button onClick={props.onClear}>Limpar</button>
-    </div>
-  );
-};
+import BUS_IMAGE from "./images/bus.png";
+import STOP_IMAGE from "./images/bus-stop.png";
 
 function App() {
   const [results, setResults] = useState([]);
   const [showResults, setShowResults] = useState(false);
-  const [markers, setMarkers] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [stops, setStops] = useState([]);
   const [polyline, setPolyline] = useState(false);
   const [activeService, setActiveService] = useState({});
   const [activeIntervalId, setIntervalId] = useState(false);
 
-  const updateMarkers = service => {
-    fetch(`${API_VEHICLES_SERVICE}/${service.id}`)
-      .then(res => res.json())
-      .then(data => {
-        const d = data.map(m => {
-          return {
-            title: m.prefix,
-            position: {
-              lat: m.lat,
-              lng: m.lng
-            }
-          };
-        });
-        setMarkers(d);
-      });
-  };
-
   const handleClear = () => {
-    setMarkers([]);
+    setVehicles([]);
+    setStops([]);
     setPolyline(false);
     setActiveService({});
     activeIntervalId(false);
+  };
+
+  const updateBusPosition = service => {
+    fetch(`${API_VEHICLES_SERVICE}/${service.id}`)
+      .then(res => res.json())
+      .then(data => {
+        const buses = data.map(m => ({
+          icon: BUS_IMAGE,
+          title: m.prefix,
+          position: {
+            lat: m.lat,
+            lng: m.lng
+          }
+        }));
+        setVehicles(buses);
+      });
   };
 
   const handleSelectService = service => {
     setShowResults(false);
     setActiveService(service);
 
-    updateMarkers(service);
+    updateBusPosition(service);
 
     const intervalId = setInterval(() => {
-      updateMarkers(service);
+      updateBusPosition(service);
     }, 30 * 1000);
     setIntervalId(intervalId);
 
     fetch(`${API_STOPS_SERVICE}/${service.id}`)
       .then(res => res.json())
       .then(data => {
+        const stopsMarkers = data.stops.map(stop => ({
+          icon: STOP_IMAGE,
+          title: stop.mnemonic,
+          position: stop.location
+        }));
+
         setPolyline(data.polyline);
+        setStops(stopsMarkers);
       });
   };
 
-  const performSearch = value => {
+  const handleSearch = value => {
     fetch(`${API_SEARCH}&q=${value}`)
       .then(res => res.json())
       .then(data => {
@@ -99,16 +85,24 @@ function App() {
       });
   };
 
+  const renderNav = () => {
+    const shouldShowTitle = !!activeService.id;
+    if (shouldShowTitle)
+      return <Title onClear={handleClear} data={activeService} />;
+
+    return <SearchBar onChange={debounce(handleSearch, 300)} />;
+  };
+
+  const markers = stops.concat(vehicles);
   return (
     <Fragment>
-      <nav>
-        {(!!activeService.id && (
-          <Title onClear={handleClear} data={activeService} />
-        )) || <SearchBar onChange={debounce(performSearch, 300)} />}
-      </nav>
+      <nav>{renderNav()}</nav>
       <main>
         {showResults && (
-          <Results data={results} handleSelectService={handleSelectService} />
+          <SearchResults
+            data={results}
+            handleSelectService={handleSelectService}
+          />
         )}
         <MapContainer polyline={polyline} markers={markers} />
       </main>

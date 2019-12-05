@@ -39,7 +39,7 @@ nav input {
   flex-grow: 1;
 }
 
-.search-result {
+.search-results {
   width: 80vw;
   height: 50vh;
   overflow: auto;
@@ -54,13 +54,13 @@ nav input {
   background-color: #fff;
 }
 
-.search-result ul {
+.search-results ul {
   padding: 0;
   margin: 0;
   list-style: none;
 }
 
-.search-result li {
+.search-results li {
   padding: 10px;
   border-bottom: 1px solid #ddd;
   cursor: pointer;

@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Map, GoogleApiWrapper, Polyline, Marker } from "google-maps-react";
-import { BUS_IMAGE, GOOGLE_API_KEY } from "../contants";
+import { GOOGLE_API_KEY } from "../contants";
 
 const mapStyles = {
   width: "100vw",
@@ -29,14 +29,7 @@ const MapContainer = props => {
         lng: -51.227894
       }}
     >
-      {!!props.markers &&
-        props.markers.map(marker => (
-          <Marker
-            icon={BUS_IMAGE}
-            position={marker.position}
-            title={marker.title}
-          />
-        ))}
+      {!!props.markers && props.markers.map(props => <Marker {...props} />)}
 
       {!!props.polyline && (
         <Polyline
