@@ -6,6 +6,7 @@ import MapContainer from "./components/MapContainer";
 import SearchBar from "./components/SearchBar";
 import SearchResults from "./components/SearchResults";
 import Title from "./components/Title";
+import Geolocation from "./components/Geolocation";
 
 import "./styles.css";
 
@@ -28,6 +29,7 @@ function App() {
   const [activeService, setActiveService] = useState({});
   const [activeIntervalId, setIntervalId] = useState(false);
   const [isLoading, setLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState({});
 
   const handleClear = () => {
     setVehicles([]);
@@ -38,7 +40,7 @@ function App() {
   };
 
   const updateBusPosition = service => {
-    setLoading(true)
+    setLoading(true);
     fetch(`${API_VEHICLES_SERVICE}/${service.id}`)
       .then(res => res.json())
       .then(data => {
@@ -51,10 +53,10 @@ function App() {
           }
         }));
         setVehicles(buses);
-        setLoading(false)
+        setLoading(false);
       })
       .catch(() => {
-        setLoading(true)
+        setLoading(true);
       });
   };
 
@@ -92,12 +94,21 @@ function App() {
       });
   };
 
+  const handleUpdatePos = position => {
+    setUserLocation(position);
+  };
+
   const renderNav = () => {
     const shouldShowTitle = !!activeService.id;
-    if (shouldShowTitle){
-      return <Title isLoading={isLoading} onClear={handleClear} data={activeService} />;
+    if (shouldShowTitle) {
+      return (
+        <Title
+          isLoading={isLoading}
+          onClear={handleClear}
+          data={activeService}
+        />
+      );
     }
-      
 
     return <SearchBar onChange={debounce(handleSearch, 300)} />;
   };
@@ -113,7 +124,23 @@ function App() {
             handleSelectService={handleSelectService}
           />
         )}
-        <MapContainer polyline={polyline} markers={markers} />
+
+        <Geolocation userLocationUpdate={handleUpdatePos}>
+          {(Object.getOwnPropertyNames(userLocation).length === 0 && (
+            <React.Fragment>
+              <span role="img" aria-label="map">
+                🗺️
+              </span>{" "}
+              Habilitar GPS
+            </React.Fragment>
+          )) || <React.Fragment>Centralizar</React.Fragment>}
+        </Geolocation>
+
+        <MapContainer
+          location={userLocation}
+          polyline={polyline}
+          markers={markers}
+        />
       </main>
     </Fragment>
   );
