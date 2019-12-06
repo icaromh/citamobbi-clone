@@ -1,7 +1,8 @@
 import React from "react";
 
 import { Map, GoogleApiWrapper, Polyline, Marker } from "google-maps-react";
-import { GOOGLE_API_KEY } from "../contants";
+import { GOOGLE_API_KEY, DEFAULT_MAP_POSITION } from "../contants";
+import MY_LOCATION from "../images/my-location.png";
 
 const mapStyles = {
   width: "100vw",
@@ -17,6 +18,16 @@ const MapContainer = props => {
     path = props.google.maps.geometry.encoding.decodePath(props.polyline);
   }
 
+  const MY_LOCATION_IMAGE = {
+    url: MY_LOCATION,
+    // This marker is 20 pixels wide by 32 pixels high.
+    size: new props.google.maps.Size(30, 30),
+    // The origin for this image is (0, 0).
+    origin: new props.google.maps.Point(0, 0),
+    // The anchor for this image is the base of the flagpole at (0, 32).
+    anchor: new props.google.maps.Point(15, 15)
+  };
+
   return (
     <Map
       className="map"
@@ -24,11 +35,15 @@ const MapContainer = props => {
       zoom={14}
       disableDefaultUI={true}
       style={mapStyles}
-      initialCenter={{
-        lat: -30.031178,
-        lng: -51.227894
-      }}
+      initialCenter={DEFAULT_MAP_POSITION}
+      center={props.location}
     >
+      <Marker
+        title="minha posição"
+        icon={MY_LOCATION_IMAGE}
+        position={props.location}
+      />
+
       {!!props.markers && props.markers.map(props => <Marker {...props} />)}
 
       {!!props.polyline && (
