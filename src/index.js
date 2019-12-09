@@ -2,13 +2,14 @@ import React, { Fragment, useState } from "react";
 import ReactDOM from "react-dom";
 import debounce from "lodash/debounce";
 
-import MapContainer from "./components/MapContainer";
+import Map from "./components/Map";
 import SearchBar from "./components/SearchBar";
-import SearchResults from "./components/SearchResults";
+import SearchResult from "./components/SearchResult";
 import Title from "./components/Title";
-import Geolocation from "./components/Geolocation";
+import GeolocationButton from "./components/GeolocationButton";
+import Navbar from "./components/Navbar";
 
-import "./styles.css";
+import GlobalStyles from "./styles/global";
 
 import {
   API_VEHICLES_SERVICE,
@@ -22,7 +23,6 @@ import STOP_IMAGE from "./images/bus-stop.png";
 
 function App() {
   const [results, setResults] = useState([]);
-  const [showResults, setShowResults] = useState(false);
   const [vehicles, setVehicles] = useState([]);
   const [stops, setStops] = useState([]);
   const [polyline, setPolyline] = useState(false);
@@ -32,6 +32,9 @@ function App() {
   const [userLocation, setUserLocation] = useState({});
 
   const handleClear = () => {
+    clearInterval(activeIntervalId);
+
+    setResults([]);
     setVehicles([]);
     setStops([]);
     setPolyline(false);
@@ -61,9 +64,8 @@ function App() {
   };
 
   const handleSelectService = service => {
-    setShowResults(false);
+    setResults([]);
     setActiveService(service);
-
     updateBusPosition(service);
 
     const intervalId = setInterval(() => {
@@ -86,11 +88,18 @@ function App() {
   };
 
   const handleSearch = value => {
+    if (value === "") {
+      setResults([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     fetch(`${API_SEARCH}&q=${value}`)
       .then(res => res.json())
       .then(data => {
         setResults(data);
-        setShowResults(true);
+        setLoading(false);
       });
   };
 
@@ -98,49 +107,43 @@ function App() {
     setUserLocation(position);
   };
 
-  const renderNav = () => {
-    const shouldShowTitle = !!activeService.id;
-    if (shouldShowTitle) {
-      return (
-        <Title
-          isLoading={isLoading}
-          onClear={handleClear}
-          data={activeService}
-        />
-      );
-    }
-
-    return <SearchBar onChange={debounce(handleSearch, 300)} />;
-  };
-
   const markers = stops.concat(vehicles);
+  const shouldShowTitle = !!activeService.id;
+
   return (
     <Fragment>
-      <nav>{renderNav()}</nav>
-      <main>
-        {showResults && (
-          <SearchResults
-            data={results}
-            handleSelectService={handleSelectService}
+      <GlobalStyles />
+      <Navbar>
+        {(shouldShowTitle && (
+          <Title
+            isLoading={isLoading}
+            onClear={handleClear}
+            data={activeService}
+          />
+        )) || (
+          <SearchBar
+            isLoading={isLoading}
+            onChange={debounce(handleSearch, 300)}
+            renderResults={() => {
+              if (results.length === 0) return;
+              return (
+                <SearchResult
+                  data={results}
+                  handleSelectService={handleSelectService}
+                />
+              );
+            }}
           />
         )}
+      </Navbar>
+      <main>
+        <GeolocationButton userLocationUpdate={handleUpdatePos}>
+          {(Object.getOwnPropertyNames(userLocation).length === 0 &&
+            "Habilitar GPS") ||
+            "Centralizar"}
+        </GeolocationButton>
 
-        <Geolocation userLocationUpdate={handleUpdatePos}>
-          {(Object.getOwnPropertyNames(userLocation).length === 0 && (
-            <React.Fragment>
-              <span role="img" aria-label="map">
-                🗺️
-              </span>{" "}
-              Habilitar GPS
-            </React.Fragment>
-          )) || <React.Fragment>Centralizar</React.Fragment>}
-        </Geolocation>
-
-        <MapContainer
-          location={userLocation}
-          polyline={polyline}
-          markers={markers}
-        />
+        <Map location={userLocation} polyline={polyline} markers={markers} />
       </main>
     </Fragment>
   );
