@@ -15,7 +15,8 @@ import {
   API_VEHICLES_SERVICE,
   API_STOPS_SERVICE,
   API_SEARCH,
-  API_UPDATE_TIME
+  API_UPDATE_TIME,
+  DEFAULT_MAP_POSITION
 } from "./contants";
 
 import BUS_IMAGE from "./images/bus.png";
@@ -94,8 +95,13 @@ function App() {
       return;
     }
 
+    const searchLocation =
+      Object.getOwnPropertyNames(userLocation).length === 0
+        ? `lat=${DEFAULT_MAP_POSITION.lat}&lng=${DEFAULT_MAP_POSITION.lng}`
+        : `lat=${userLocation.lat}&lng=${userLocation.lng}`;
+
     setLoading(true);
-    fetch(`${API_SEARCH}&q=${value}`)
+    fetch(`${API_SEARCH}&q=${value}&${searchLocation}`)
       .then(res => res.json())
       .then(data => {
         setResults(data);
